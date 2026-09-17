@@ -1,4 +1,3 @@
-from datetime import datetime
 
 import logging
 
@@ -12,6 +11,11 @@ class Satellite:
         self.altitude = altitude
         self.speed = speed
 
-    def display_info(self):
-        time_stamp = f"| speed: {self.speed} | altitude: {self.altitude}"
-        logger.info(time_stamp)
+    def get_telemetry(self):
+        return f"| speed: {self.speed} | altitude: {self.altitude}"
+
+    def set_speed(self, new_speed):
+        self.speed = new_speed
+
+    def set_altitude(self, new_altitude):
+        self.altitude = new_altitude
