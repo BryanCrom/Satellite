@@ -1,35 +1,30 @@
 import asyncio
 import logging
 
-import nats
-
-from satellite import Satellite
+from satellite import *
 
 logger = logging.getLogger("main")
-NATS_URL = "nats://localhost:4222"
 
-async def main ():
+async def main () -> None:
     logging.basicConfig(format="%(asctime)s %(message)s", datefmt="%d/%m/%Y %I:%M:%S %p", level=logging.DEBUG)
     logger.info("started")
 
     satellite = Satellite(speed=100, altitude=1)
-    logger.info(satellite.get_telemetry())
-    await asyncio.sleep(1)
 
-    nc = await nats.connect(NATS_URL)
     subject_name = "satellite_01.telemetry"
+    nc = await nats_setup()
+    await nats_sub(nc, subject_name)
 
-    sub = await nc.subscribe(subject_name)
-    await nc.publish(subject_name, satellite.get_telemetry().encode())
-    msg = await sub.next_msg()
-    subject = msg.subject
-    telemetry = str(msg.data)[4:-1]
-    print(f"{subject}: {telemetry}")
+    try:
+        while(True):
+            await nc.publish(subject_name, satellite.get_telemetry().encode())
+            await asyncio.sleep(2)
 
-    await nc.flush()
-    await nc.close()
+    except(KeyboardInterrupt):
+        await nc.flush()
+        await nc.close()
 
-    logger.info("finished")
+        logger.info("finished")
 
 if __name__ == "__main__":
     asyncio.run(main())
